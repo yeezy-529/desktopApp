@@ -1,4 +1,4 @@
-#  Call_Empty = fix_fastrow
+#  APP_RUNTIME.call_empty = fix_fastrow
 #         if fix_column > fix_endrow:
 #            Row_insart = fix_column - fix_endrow
            
@@ -20,15 +20,14 @@
 #             wb2.save(failpass2)
 
 def save_contens(comfirm):
-    global Call_Empty
-    global All_contents
+    if not require_excel_ready("登録"):
+        return
     global fix_endrow
-    global All_contents
     border = Border(top=side, bottom=side, left=side, right=side)
     wb2 = openpyxl.load_workbook(failpass2, keep_vba=True)
     ws2 = wb2.worksheets[0]
-    if fix_mode == 1:
-        Call_Empty = fix_fastrow
+    if APP_RUNTIME.fix_mode == 1:
+        APP_RUNTIME.call_empty = fix_fastrow
         if fix_column > fix_endrow:
            Row_insart = fix_column - fix_endrow
            
@@ -50,10 +49,10 @@ def save_contens(comfirm):
     for n in range(len(comfirm)):
         b = 1
         for row_a in comfirm[n]:
-            ws2.cell(row=Call_Empty,column=b).value = row_a
+            ws2.cell(row=APP_RUNTIME.call_empty,column=b).value = row_a
             b+=1
-        Call_Empty +=1
-    All_contents = []
+        APP_RUNTIME.call_empty +=1
+    APP_RUNTIME.all_contents = []
     try:
         wb2.save(failpass2)
         messagebox.showwarning("確認","登録しました。")
@@ -85,6 +84,9 @@ def search_insert():
     global comfirm_mat_num_6
     global comfirm_mat_num_7
     global comfirm_mat_num_8
+    if not searchbox_listbox.curselection():
+        messagebox.showwarning("確認","工番検索の候補を選択してください。")
+        return
     mat_index = searchbox_listbox.curselection()[0]
     
     if checkbutton_var_1.get() == "1":
@@ -161,10 +163,11 @@ def cell_check(ws_v, ws_d):
     return i
 
 def cell_fix():
+    if not require_excel_ready("修正"):
+        return
     global fix_fastrow
     global fix_endrow
     global fix_maxrow
-    global fix_mode
     global k
     global comfirm_day_1
     global comfirm_day_2
@@ -275,7 +278,7 @@ def cell_fix():
         for (cell_i,cell_j) in zip(def_ws2['B'],def_ws2['A']):
             i += 1
             if cell_i.value == _name_ and cell_j.value == _date_:
-                fix_mode = 1
+                APP_RUNTIME.fix_mode = 1
                 try:
                     k
                 except NameError:
@@ -781,13 +784,13 @@ def Calculation():
         end_number_change_m8("k") 
     
 # def overwark_check():
-#     global overwark_check_mode
+#     global APP_RUNTIME.overwark_check_mode
 #     if (overwark_check_combobox['state'] == "noemal"):
 #         overwark_check_combobox['state'] = "disabled"
-#         overwark_check_mode = 0
+#         APP_RUNTIME.overwark_check_mode = 0
 #     else:
 #         overwark_check_combobox['state'] = "noemal"
-#         overwark_check_mode = 1
+#         APP_RUNTIME.overwark_check_mode = 1
 
 def one_set():
     global comfirm_end_time_h_1
@@ -803,7 +806,6 @@ def one_set():
     end_number_change_m1(0)
 
 def list_state():
-    global mode
     
     if break_listbox_1['state'] == "normal":
         break_listbox_1['state'] = "disabled"
@@ -814,7 +816,7 @@ def list_state():
         break_listbox_6['state'] = "disabled"
         break_listbox_7['state'] = "disabled"
         break_listbox_8['state'] = "disabled"
-        mode = 0
+        APP_RUNTIME.mode = 0
         
         any_label.place_forget()
     else:
@@ -827,16 +829,13 @@ def list_state():
         break_listbox_6['state'] = "normal"
         break_listbox_7['state'] = "normal"
         break_listbox_8['state'] = "normal"
-        mode = 1
+        APP_RUNTIME.mode = 1
         print(break_listbox_1['state'])
         pass
 
 def allclear():
 
     global comfirm_name
-    global mode
-    global fix_mode
-    global All_contents
     if 'comfirm_name' in globals():
         del comfirm_name
     total_time_min_v.set("合計時間 : "+ "0" + " 分")
@@ -856,12 +855,12 @@ def allclear():
     break_listbox_8['state'] = "disabled"
 
     # overwark_check_combobox['state'] = "disabled"
-    All_contents = []
-    overwark_check_mode = 0
-    mode = 0
+    APP_RUNTIME.all_contents = []
+    APP_RUNTIME.overwark_check_mode = 0
+    APP_RUNTIME.mode = 0
     nightshift_time = 0
     comfirm_overwark_check = 0
-    fix_mode = 0
+    APP_RUNTIME.fix_mode = 0
 
     search_clear()
     row1clear()
@@ -1396,9 +1395,9 @@ def excel_output_elif(today, cwcn, cwn, cst_h, cst_m, cet_h, cet_m, total):
     return comfirm
 
 def set1():
-    global Call_Empty
-    
-    Call_Empty = 0
+    if not require_excel_ready("登録"):
+        return
+    APP_RUNTIME.call_empty = 0
 
     if 'comfirm_name' in globals():
         if'comfirm_start_time_h_1' in globals() and 'comfirm_start_time_m_1' in globals() and 'comfirm_end_time_h_1' in globals() and 'comfirm_end_time_m_1' in globals():
@@ -1407,7 +1406,7 @@ def set1():
             wb3 = openpyxl.load_workbook(failpass3, keep_vba=True)
             ws3 = wb3.worksheets[0]
             if total_time >= 480:
-                if overwark_check_mode == 1:
+                if APP_RUNTIME.overwark_check_mode == 1:
                     i = cell_check(ws3['A'], ws3)
                     list_i = [today, comfirm_name]
                     b = 1
@@ -1420,15 +1419,15 @@ def set1():
                         messagebox.showwarning("確認","登録ファイルが開かれています。")
                         wb3.save(failpass3)
 
-                Call_Empty = cell_check(ws2['E'], ws2)
+                APP_RUNTIME.call_empty = cell_check(ws2['E'], ws2)
                 i = 0
                 for cell_i in ws2['E']:
                     i += 1
-                    if Call_Empty == i:
+                    if APP_RUNTIME.call_empty == i:
                         if cell_i.value == None:
                             break
                         else:
-                            Call_Empty +=1
+                            APP_RUNTIME.call_empty +=1
                             break
 
                 check_column_1()            
@@ -1437,7 +1436,7 @@ def set1():
                 MessageBox = messagebox.askyesno("確認","合計時間が480分を満たしていません\n登録してもよろしいでしょうか？")
 
                 if MessageBox == True:
-                    if overwark_check_mode == 1:
+                    if APP_RUNTIME.overwark_check_mode == 1:
                         i = cell_check(ws3['A'], ws3)
                         list_i = [today, comfirm_name,]
                         b = 1
@@ -1445,7 +1444,7 @@ def set1():
                             ws3.cell(row=i,column=b).value = row_i
                             b+=1
                         wb3.save(failpass3)
-                    Call_Empty = cell_check(ws2['E'], ws2)
+                    APP_RUNTIME.call_empty = cell_check(ws2['E'], ws2)
                     check_column_1()
                 
         else:
@@ -1456,7 +1455,7 @@ def set1():
 def check_column_1():
     global fix_column
     if'comfirm_start_time_h_1' in globals() and 'comfirm_start_time_m_1' in globals() and 'comfirm_end_time_h_1' in globals() and 'comfirm_end_time_m_1' in globals():    
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 1
         if'comfirm_warkclass_num_1' in globals() and 'comfirm_wark_num_1' in globals():
             check_column_2()
@@ -1466,7 +1465,7 @@ def check_column_1():
 def check_column_2():
     global fix_column
     if'comfirm_start_time_h_2' in globals() and 'comfirm_start_time_m_2' in globals() and 'comfirm_end_time_h_2' in globals() and 'comfirm_end_time_m_2' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 2
         if 'comfirm_warkclass_num_2' in globals() and 'comfirm_wark_num_2' in globals():
             check_column_3()
@@ -1479,7 +1478,7 @@ def check_column_3():
     global fix_column
 
     if'comfirm_start_time_h_3' in globals() and 'comfirm_start_time_m_3' in globals() and 'comfirm_end_time_h_3' in globals() and 'comfirm_end_time_m_3' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 3
         if 'comfirm_warkclass_num_3' in globals() and 'comfirm_wark_num_3' in globals():
             check_column_4()
@@ -1491,7 +1490,7 @@ def check_column_3():
 def check_column_4():
     global fix_column
     if'comfirm_start_time_h_4' in globals() and 'comfirm_start_time_m_4' in globals() and 'comfirm_end_time_h_4' in globals() and 'comfirm_end_time_m_4' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 4
         if 'comfirm_warkclass_num_4' in globals() and 'comfirm_wark_num_4' in globals():
             check_column_5()
@@ -1503,7 +1502,7 @@ def check_column_4():
 def check_column_5():
     global fix_column
     if'comfirm_start_time_h_5' in globals() and 'comfirm_start_time_m_5' in globals() and 'comfirm_end_time_h_5' in globals() and 'comfirm_end_time_m_5' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 5
         if 'comfirm_warkclass_num_5' in globals() and 'comfirm_wark_num_5' in globals():
             check_column_6()
@@ -1515,7 +1514,7 @@ def check_column_5():
 def check_column_6():
     global fix_column
     if'comfirm_start_time_h_6' in globals() and 'comfirm_start_time_m_6' in globals() and 'comfirm_end_time_h_6' in globals() and 'comfirm_end_time_m_6' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 6
         if 'comfirm_warkclass_num_6' in globals() and 'comfirm_wark_num_6' in globals():
             check_column_7()
@@ -1527,7 +1526,7 @@ def check_column_6():
 def check_column_7():
     global fix_column
     if'comfirm_start_time_h_7' in globals() and 'comfirm_start_time_m_7' in globals() and 'comfirm_end_time_h_7' in globals() and 'comfirm_end_time_m_7' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
             fix_column = 7
         if 'comfirm_warkclass_num_7' in globals() and 'comfirm_wark_num_7' in globals():
             check_column_8()
@@ -1539,7 +1538,7 @@ def check_column_7():
 def check_column_8():
     global fix_column
     if'comfirm_start_time_h_8' in globals() and 'comfirm_start_time_m_8' in globals() and 'comfirm_end_time_h_8' in globals() and 'comfirm_end_time_m_8' in globals():
-        if fix_mode == 1:
+        if APP_RUNTIME.fix_mode == 1:
 
             fix_column = 8
         if 'comfirm_warkclass_num_8' in globals() and 'comfirm_wark_num_8' in globals():
@@ -1550,7 +1549,6 @@ def check_column_8():
         row1comfirm()                
        
 def row1comfirm():
-    global All_contents
     global overwark
     global nightshift_x
     global fix_column
@@ -1558,11 +1556,11 @@ def row1comfirm():
 
     All_contents_list = []
 
-    # if fix_mode == 1:
+    # if APP_RUNTIME.fix_mode == 1:
     #     wb2 = openpyxl.load_workbook(failpass2, keep_vba=True)
     #     ws2 = wb2.worksheets[0]
 
-    #     Call_Empty = fix_fastrow
+    #     APP_RUNTIME.call_empty = fix_fastrow
 
     if 'comfirm_end_time_m_2' in globals():
         overwark = ""
@@ -1610,12 +1608,10 @@ def row1comfirm():
                                     comfirm_end_time_m_1, 
                                     total_time_1
                                     )
-        All_contents.append(All_contents_list)
+        APP_RUNTIME.all_contents.append(All_contents_list)
         row2comfirm()          
 
 def row2comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
 
@@ -1668,15 +1664,13 @@ def row2comfirm():
                                     comfirm_end_time_m_2, 
                                     total_time_2
                                     )
-        All_contents.append(All_contents_list)
+        APP_RUNTIME.all_contents.append(All_contents_list)
         row3comfirm()
     else:
-        save_contens(All_contents)
+        save_contens(APP_RUNTIME.all_contents)
 
         
 def row3comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
 
@@ -1729,14 +1723,12 @@ def row3comfirm():
                                     comfirm_end_time_m_3,
                                     total_time_3
                                     )
-        All_contents.append(All_contents_list)
+        APP_RUNTIME.all_contents.append(All_contents_list)
         row4comfirm()
     else:
-        save_contens(All_contents)
+        save_contens(APP_RUNTIME.all_contents)
 
 def row4comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
 
@@ -1789,16 +1781,14 @@ def row4comfirm():
                                     comfirm_end_time_m_4,
                                     total_time_4
                                     )
-        All_contents.append(All_contents_list)
-        # Call_Empty+=1
+        APP_RUNTIME.all_contents.append(All_contents_list)
+        # APP_RUNTIME.call_empty+=1
         row5comfirm()    
     else:
         messagebox.showwarning("確認","登録しました。")
         allclear()
     
 def row5comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
     All_contents_list = []
@@ -1849,15 +1839,13 @@ def row5comfirm():
                                     comfirm_end_time_m_5,
                                     total_time_5
                                     )
-        All_contents.append(All_contents_list)
-        # Call_Empty+=1
+        APP_RUNTIME.all_contents.append(All_contents_list)
+        # APP_RUNTIME.call_empty+=1
         row6comfirm()
     else:
-        save_contens(All_contents)
+        save_contens(APP_RUNTIME.all_contents)
                 
 def row6comfirm():
-    global All_contents
-    global Call_Empty
     global overwark 
     global nightshift_x
     All_contents_list = []
@@ -1907,15 +1895,13 @@ def row6comfirm():
                                     comfirm_end_time_m_6,
                                     total_time_6
                                     )
-        All_contents.append(All_contents_list)
-        # Call_Empty+=1
+        APP_RUNTIME.all_contents.append(All_contents_list)
+        # APP_RUNTIME.call_empty+=1
         row7comfirm()       
     else:
-        save_contens(All_contents)
+        save_contens(APP_RUNTIME.all_contents)
 
 def row7comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
     All_contents_list = []
@@ -1967,15 +1953,13 @@ def row7comfirm():
                                     total_time_7
                                     )
         
-        All_contents.append(All_contents_list)
-        # Call_Empty+=1
+        APP_RUNTIME.all_contents.append(All_contents_list)
+        # APP_RUNTIME.call_empty+=1
         row8comfirm()        
     else:
-        save_contens(All_contents)
+        save_contens(APP_RUNTIME.all_contents)
  
 def row8comfirm():
-    global All_contents
-    global Call_Empty
     global overwark
     global nightshift_x
     All_contents_list = []
@@ -2013,8 +1997,8 @@ def row8comfirm():
                                     comfirm_end_time_m_8,
                                     total_time_8
                                     )
-    All_contents.append(All_contents_list)
-    save_contens(All_contents)
+    APP_RUNTIME.all_contents.append(All_contents_list)
+    save_contens(APP_RUNTIME.all_contents)
 
 def func1(event):
     global comfirm_name
@@ -3317,7 +3301,7 @@ def break_time_func(start_time_h,start_time_m,end_time_h,end_time_m,month_a,day_
             plus = 0
         delta = end_time - start_time
         total = (delta.total_seconds() / 60)
-        if mode == 0:
+        if APP_RUNTIME.mode == 0:
             if break_10_10 > start_time:
                 if break_15_10 <= end_time:
                     total -= 80
@@ -3333,7 +3317,7 @@ def break_time_func(start_time_h,start_time_m,end_time_h,end_time_m,month_a,day_
             elif break_15_10 > start_time:
                 if break_15_10 < end_time:
                     total -= 10
-        elif mode == 1:
+        elif APP_RUNTIME.mode == 1:
             total -= break_time
 
         total += plus
@@ -3349,7 +3333,7 @@ def break_time_func(start_time_h,start_time_m,end_time_h,end_time_m,month_a,day_
             plus = 0
         delta = end_time - start_time
         total = (delta.total_seconds() / 60)
-        if mode == 0:
+        if APP_RUNTIME.mode == 0:
             if break_10_15 > start_time:
                 if break_15_15 <= end_time:
                     total -= 90
@@ -3365,7 +3349,7 @@ def break_time_func(start_time_h,start_time_m,end_time_h,end_time_m,month_a,day_
             elif break_15_10 > start_time:
                 if break_15_10 < end_time:
                     total -= 15
-        elif mode == 1:
+        elif APP_RUNTIME.mode == 1:
             total -= break_time
 
         total += plus
@@ -3400,9 +3384,42 @@ from openpyxl.styles.borders import Border, Side
 from tkinter.ttk import Combobox
 from tkinter import messagebox
 from tkinter import *
+from types import SimpleNamespace
 import datetime
 import openpyxl
+import os
 import tkinter as tk
+
+APP_RUNTIME = SimpleNamespace(
+    mode=0,
+    overwark_check_mode=0,
+    fix_mode=0,
+    all_contents=[],
+    call_empty=0,
+    excel_ready=False,
+    excel_error="",
+)
+
+
+def create_empty_workbook():
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    return workbook, worksheet
+
+
+def safe_load_workbook(path, keep_vba=True):
+    if not path:
+        raise FileNotFoundError("Excel file path is not configured.")
+    return openpyxl.load_workbook(path, keep_vba=keep_vba)
+
+
+def require_excel_ready(action_name):
+    if APP_RUNTIME.excel_ready:
+        return True
+    error_message = APP_RUNTIME.excel_error or "参照用の Excel ファイルが見つからないため利用できません。"
+    messagebox.showwarning("確認", f"{action_name}は利用できません。\n{error_message}")
+    return False
+
 
 # 日付取得
 dt_now = datetime.datetime.now()
@@ -3412,12 +3429,27 @@ nd = now_day = dt_now.day
 today = datetime.date(ny,nm,nd)
 
 # エクセルファイル読込
-
-loadingpass_wd = openpyxl.load_workbook('excelpath.xlsx', keep_vba=True)
-loadingpass_ws = loadingpass_wd.worksheets[0]
+class_mode = 0
+name_mode = None
+loadingpass_error = ""
+loadingpass_path = 'excelpath.xlsx'
+try:
+    loadingpass_wd = openpyxl.load_workbook(loadingpass_path, keep_vba=True)
+    loadingpass_ws = loadingpass_wd.worksheets[0]
+except FileNotFoundError:
+    loadingpass_wd, loadingpass_ws = create_empty_workbook()
+    loadingpass_ws['D1'] = 0
+    loadingpass_ws['D2'] = 0
+    loadingpass_ws['D3'] = 0
+    loadingpass_error = f'{loadingpass_path} が見つからないため、参照データなしで起動します。'
+except Exception as exc:
+    loadingpass_wd, loadingpass_ws = create_empty_workbook()
+    loadingpass_ws['D1'] = 0
+    loadingpass_ws['D2'] = 0
+    loadingpass_ws['D3'] = 0
+    loadingpass_error = f'{loadingpass_path} の読み込みに失敗したため、参照データなしで起動します。 ({exc})'
 
 failps1 = loadingpass_ws['B1']
-
 failps3 = loadingpass_ws['B3']
 
 kanto_value = loadingpass_ws['D1'].value
@@ -3430,16 +3462,14 @@ else:
     kanto_mode = int(kanto_value)
 
 if class_value == None:
-    class_value = 0
+    class_mode = 0
 else:
     class_mode = int(class_value)
 
-if name_value == None:
-    # name_value = 0
-    pass
-else:
+if name_value != None:
     name_mode = int(name_value)
 
+failps2 = loadingpass_ws['B6']
 if class_mode == 0:
     CELL_work_name = "C"
     CELL_work_class = "N"
@@ -3494,15 +3524,25 @@ if class_mode == 8:
     CELL_work_number = "AB"
     failps2 = loadingpass_ws['B14']
 
-failpass1 = str(failps1.value)
-failpass2 = str(failps2.value)
-failpass3 = str(failps3.value)
+failpass1 = str(failps1.value) if failps1.value else ""
+failpass2 = str(failps2.value) if failps2.value else ""
+failpass3 = str(failps3.value) if failps3.value else ""
 
-wb = openpyxl.load_workbook(failpass1, keep_vba=True)
 side = Side(style='thin', color='000000')
 border = Border(top=side, bottom=side, left=side, right=side)
 
-ws = wb.worksheets[0]
+APP_RUNTIME.excel_error = loadingpass_error
+
+try:
+    wb = safe_load_workbook(failpass1, keep_vba=True)
+    ws = wb.worksheets[0]
+    APP_RUNTIME.excel_ready = True
+except Exception as exc:
+    wb, ws = create_empty_workbook()
+    APP_RUNTIME.excel_ready = False
+    if APP_RUNTIME.excel_error:
+        APP_RUNTIME.excel_error += '\n'
+    APP_RUNTIME.excel_error += f'マスタ Excel を読み込めないため、保存/修正は無効です。 ({exc})'
 
 break_10_10 = datetime.datetime(ny,nm,nd,10,10)
 break_10_15 = datetime.datetime(ny,nm,nd,10,15)
@@ -3540,47 +3580,44 @@ comfirm_nightshift_5 = 0
 comfirm_nightshift_6 = 0
 comfirm_nightshift_7 = 0
 comfirm_nightshift_8 = 0
-# mode初期値
-mode = 0
-overwark_check_mode = 0
-fix_mode = 0
-All_contents = []
 
-# class_value = loadingpass_ws['D1'].value
-
-mat = cell_check(ws['A'], ws)
-mat -= 1
 mat_number = []
 mat_number_name = []
-for row_1 in ws["A2:A" + str(mat)]:
-    for col_1 in row_1:
-        mat_number.append(str(col_1.value)[:7])
-        mat_number_name.append(str(col_1.value))
-        mat_number_name_str = [str(n) for n in mat_number_name]
-        mat_number_str = [str(n) for n in mat_number]
-
-warkclass = cell_check(ws[CELL_work_class], ws)
-warkclass -= 1
+mat_number_name_str = []
+mat_number_str = []
 warkclass_number = []
-for row_2 in ws[CELL_work_class + "2:"+ CELL_work_class + str(warkclass)]:
-    for col_2 in row_2:
-        warkclass_number.append(str(col_2.value))
-
-wark = cell_check(ws[CELL_work_number], ws)
-wark -= 1
 wark_number = []
-for row_3 in ws[CELL_work_number + "2:" + CELL_work_number + str(wark)]:
-    for col_3 in row_3:
-        wark_number.append(col_3.value)
-        wark_number_str = [str(n) for n in wark_number]
-
-NAME = cell_check(ws[CELL_work_name], ws)
-NAME -= 1
+wark_number_str = []
 name_number = []
-for row_5 in ws[CELL_work_name + "2:"+ CELL_work_name + str(NAME)]:
-    for col_5 in row_5:
-        name_number.append(col_5.value)
-        
+
+if APP_RUNTIME.excel_ready:
+    mat = cell_check(ws['A'], ws)
+    mat -= 1
+    for row_1 in ws["A2:A" + str(mat)]:
+        for col_1 in row_1:
+            mat_number.append(str(col_1.value)[:7])
+            mat_number_name.append(str(col_1.value))
+            mat_number_name_str = [str(n) for n in mat_number_name]
+            mat_number_str = [str(n) for n in mat_number]
+
+    warkclass = cell_check(ws[CELL_work_class], ws)
+    warkclass -= 1
+    for row_2 in ws[CELL_work_class + "2:"+ CELL_work_class + str(warkclass)]:
+        for col_2 in row_2:
+            warkclass_number.append(str(col_2.value))
+
+    wark = cell_check(ws[CELL_work_number], ws)
+    wark -= 1
+    for row_3 in ws[CELL_work_number + "2:" + CELL_work_number + str(wark)]:
+        for col_3 in row_3:
+            wark_number.append(col_3.value)
+            wark_number_str = [str(n) for n in wark_number]
+
+    NAME = cell_check(ws[CELL_work_name], ws)
+    NAME -= 1
+    for row_5 in ws[CELL_work_name + "2:"+ CELL_work_name + str(NAME)]:
+        for col_5 in row_5:
+            name_number.append(col_5.value)
 
 # リスト作成
 month_list = ["4","5","6","7","8","9","10","11","12","1","2","3"]
@@ -3601,6 +3638,8 @@ if kanto_mode == 0:
     app_title ='工数入力 ' + version
 elif kanto_mode == 1:
     app_title ='関東工場 工数入力 ' + version
+if not APP_RUNTIME.excel_ready:
+    app_title += ' [参照データなし]'
 
 root1 = tk.Tk()
 root1.title(app_title)
@@ -3640,6 +3679,18 @@ ward_var_1 = StringVar()
 ward_var_1.set("名前選択")
 ward_value_1 = tk.Label(name_frame, textvariable=ward_var_1, font=(fonts,20,"bold"))
 ward_value_1.place(x=150, y=8)
+
+excel_status_var = StringVar()
+excel_status_var.set(APP_RUNTIME.excel_error)
+excel_status_label = tk.Label(
+    name_frame,
+    textvariable=excel_status_var,
+    fg="red",
+    justify="left",
+    font=(fonts,10,"bold"),
+)
+if APP_RUNTIME.excel_error:
+    excel_status_label.place(x=10, y=52)
 
 name_num_v = StringVar()
 name_num_combobox = Combobox(name_frame, textvariable=name_num_v, width=10, font=(fonts,15,"bold"))
@@ -3925,6 +3976,9 @@ searchbox_listbox.grid(row=2, column=0, padx=14, pady=3)
 
 searchbox_button_clear = tk.Button(search_frame, text='挿　入', font=(fonts,12,"bold"), command=search_insert)
 searchbox_button_clear.grid(row=2, column=1, padx=0, pady=1)
+if not APP_RUNTIME.excel_ready:
+    fixbutton.configure(state="disabled")
+    set_button.configure(state="disabled")
 # # --------------------------------------------------------------------------------
 name_num_combobox['values'] = name_number
 try:
@@ -4358,9 +4412,8 @@ set_button.pack(padx=100, ipadx=100, ipady=10)
 
 
 root1.resizable(width=False, height=False)
-root1.mainloop()
 
-
-
+if __name__ == "__main__":
+    root1.mainloop()
 
 
