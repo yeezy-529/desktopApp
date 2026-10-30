@@ -25,7 +25,7 @@ def save_contents(confirmed):
     global edit_row_count
     global pending_rows
     border = Border(top=side, bottom=side, left=side, right=side)
-    report_workbook = openpyxl.load_workbook(report_workbook_path, keep_vba=True)
+    report_workbook = load_required_workbook(report_workbook_path, "日報出力 Excel")
     report_sheet = report_workbook.worksheets[0]
     if edit_mode == 1:
         target_row = edit_start_row
@@ -262,14 +262,14 @@ def load_rows_for_edit():
     global confirmed_end_time_m_7
     global confirmed_end_time_m_8
 
-    edit_report_workbook = openpyxl.load_workbook(report_workbook_path, keep_vba=True)
+    edit_report_workbook = load_required_workbook(report_workbook_path, "日報出力 Excel")
     edit_report_sheet = edit_report_workbook.worksheets[0]
     if "confirmed_name" in globals() and "confirmed_month_1" in globals() and "confirmed_day_1" in globals():
 
         _name_ =  confirmed_name
         _date_ = datetime.datetime(int(current_year),int(confirmed_month_1),int(confirmed_day_1),00,00)
         i = 0
-        edit_report_workbook = openpyxl.load_workbook(report_workbook_path, keep_vba=True)
+        edit_report_workbook = load_required_workbook(report_workbook_path, "日報出力 Excel")
         edit_report_sheet = edit_report_workbook.worksheets[0]
 
         for (cell_i,cell_j) in zip(edit_report_sheet['B'],edit_report_sheet['A']):
@@ -1402,9 +1402,9 @@ def register_entries():
 
     if 'confirmed_name' in globals():
         if'confirmed_start_time_h_1' in globals() and 'confirmed_start_time_m_1' in globals() and 'confirmed_end_time_h_1' in globals() and 'confirmed_end_time_m_1' in globals():
-            report_workbook = openpyxl.load_workbook(report_workbook_path, keep_vba=True)
+            report_workbook = load_required_workbook(report_workbook_path, "日報出力 Excel")
             report_sheet = report_workbook.worksheets[0]
-            overtime_workbook = openpyxl.load_workbook(overtime_workbook_path, keep_vba=True)
+            overtime_workbook = load_required_workbook(overtime_workbook_path, "残業確認 Excel")
             overtime_sheet = overtime_workbook.worksheets[0]
             if total_time >= 480:
                 if overtime_check_mode == 1:
@@ -3400,6 +3400,49 @@ from tkinter import *
 import datetime
 import openpyxl
 import tkinter as tk
+from zipfile import BadZipFile
+
+def stop_startup(title, message):
+    messagebox.showerror(title, message)
+    raise SystemExit(1)
+
+def get_required_workbook_path(path_cell, cell_address, workbook_role):
+    path_value = path_cell.value
+    if path_value is None or str(path_value).strip() == "":
+        stop_startup(
+            "起動エラー",
+            "excelpath.xlsx の {0} に {1} のパスを設定してください。".format(
+                cell_address,
+                workbook_role,
+            ),
+        )
+    return str(path_value).strip()
+
+def load_required_workbook(workbook_path, workbook_role):
+    try:
+        return openpyxl.load_workbook(workbook_path, keep_vba=True)
+    except FileNotFoundError:
+        stop_startup(
+            "起動エラー",
+            "{0} が見つかりません。\nパス: {1}".format(workbook_role, workbook_path),
+        )
+    except PermissionError:
+        stop_startup(
+            "起動エラー",
+            "{0} を開けません。\nExcel で開いている場合は閉じてから再実行してください。\nパス: {1}".format(
+                workbook_role,
+                workbook_path,
+            ),
+        )
+    except (BadZipFile, OSError, openpyxl.utils.exceptions.InvalidFileException) as error:
+        stop_startup(
+            "起動エラー",
+            "{0} を読み込めません。\nパス: {1}\n詳細: {2}".format(
+                workbook_role,
+                workbook_path,
+                error,
+            ),
+        )
 
 # 日付取得
 dt_now = datetime.datetime.now()
@@ -3413,8 +3456,17 @@ today = datetime.date(current_year,current_month,current_day)
 try:
     config_workbook = openpyxl.load_workbook('excelpath.xlsx', keep_vba=True)
 except FileNotFoundError:
-    messagebox.showerror("起動エラー", "excelpath.xlsx が見つかりません。")
-    raise SystemExit(1)
+    stop_startup("起動エラー", "excelpath.xlsx が見つかりません。")
+except PermissionError:
+    stop_startup(
+        "起動エラー",
+        "excelpath.xlsx を開けません。\nExcel で開いている場合は閉じてから再実行してください。",
+    )
+except (BadZipFile, OSError, openpyxl.utils.exceptions.InvalidFileException) as error:
+    stop_startup(
+        "起動エラー",
+        "excelpath.xlsx を読み込めません。\n詳細: {0}".format(error),
+    )
 config_sheet = config_workbook.worksheets[0]
 
 master_path_cell = config_sheet['B1']
@@ -3495,11 +3547,11 @@ if class_mode == 8:
     work_number_column = "AB"
     report_path_cell = config_sheet['B14']
 
-master_workbook_path = str(master_path_cell.value)
-report_workbook_path = str(report_path_cell.value)
-overtime_workbook_path = str(overtime_path_cell.value)
+master_workbook_path = get_required_workbook_path(master_path_cell, "B1", "マスタ Excel")
+report_workbook_path = get_required_workbook_path(report_path_cell, report_path_cell.coordinate, "日報出力 Excel")
+overtime_workbook_path = get_required_workbook_path(overtime_path_cell, "B3", "残業確認 Excel")
 
-master_workbook = openpyxl.load_workbook(master_workbook_path, keep_vba=True)
+master_workbook = load_required_workbook(master_workbook_path, "マスタ Excel")
 side = Side(style='thin', color='000000')
 border = Border(top=side, bottom=side, left=side, right=side)
 
@@ -4360,7 +4412,6 @@ set_button.pack(padx=100, ipadx=100, ipady=10)
 
 root1.resizable(width=False, height=False)
 root1.mainloop()
-
 
 
 
